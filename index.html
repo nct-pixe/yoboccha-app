@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>よぼっちゃ | 認知症リスク診断アプリ</title>
+<style>
+:root {
+  --primary: #2196C9;
+  --primary-light: #E3F4FC;
+  --primary-dark: #1565A0;
+  --success: #059669;
+  --success-light: #D1FAE5;
+  --warning: #D97706;
+  --warning-light: #FEF3C7;
+  --danger: #DC2626;
+  --danger-light: #FEE2E2;
+  --text: #111827;
+  --text-mid: #374151;
+  --text-light: #6B7280;
+  --border: #E5E7EB;
+  --bg: #F8FAFC;
+  --white: #FFFFFF;
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.07);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--white);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ===== SCREENS ===== */
+.screen { display: none; flex-direction: column; min-height: 100vh; }
+.screen.active { display: flex; }
+
+/* ===== WELCOME SCREEN ===== */
+.welcome-hero {
+  background: linear-gradient(180deg, #F5FBFF 0%, #EBF6FF 50%, #FFF9F2 100%);
+  padding: 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative leaves top */
+.hero-leaves {
+  position: absolute; top: 0; left: 0; right: 0;
+  width: 100%; pointer-events: none; z-index: 1;
+}
+
+/* Top text badge */
+.hero-top-badge {
+  position: relative; z-index: 2;
+  padding-top: 24px;
+  font-size: 13px; color: #4A7F5E;
+  font-weight: 600; letter-spacing: 0.3px;
+}
+
+/* Title area */
+.hero-title-area {
+  position: relative; z-index: 2;
+  padding: 14px 20px 0;
+}
+.hero-app-label {
+  font-size: 13px; font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.hero-app-name-box {
+  display: inline-flex; align-items: center; gap: 10px;
+  border: 3px solid var(--primary);
+  border-radius: 18px;
+  padding: 8px 20px 8px 12px;
+  background: white;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 12px rgba(33,150,201,0.15);
+}
+.hero-brain-icon {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, #FFE4EC, #FFB3C6);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px;
+  box-shadow: 0 3px 10px rgba(255,100,130,0.3);
+  flex-shrink: 0;
+}
+.hero-app-name {
+  font-size: 38px; font-weight: 900;
+  color: var(--primary);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.hero-sub {
+  font-size: 14px; font-weight: 600;
+  color: #555; margin-bottom: 0;
+}
+
+/* Hero illustration */
+.hero-illustration {
+  position: relative; z-index: 2;
+  width: 100%;
+  margin-top: 0;
+}
+.hero-illustration img {
+  width: 100%; height: auto;
+  display: block;
+}
+.hero-copyright {
+  position: absolute;
+  top: 13%; right: 6%;
+  font-size: 13px; font-weight: 700;
+  color: rgba(30, 100, 160, 0.75);
+  pointer-events: none;
+  letter-spacing: 0.3px;
+}
+.hero-illustration-placeholder {
+  width: 100%; height: 280px;
+  background: linear-gradient(160deg, #E8F5FF 0%, #FFF5EB 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 12px;
+}
+.hero-illustration-placeholder .ph-icon { font-size: 64px; }
+.hero-illustration-placeholder .ph-text {
+  font-size: 13px; color: #999;
+  line-height: 1.6; text-align: center;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.welcome-body { padding: 20px 24px 32px; flex: 1; }
+
+.evidence-badge {
+  display: flex; align-items: flex-start; gap: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 24px;
+}
+.evidence-badge .badge-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.evidence-badge .badge-text { font-size: 13px; color: var(--text-mid); line-height: 1.55; }
+.evidence-badge .badge-text strong { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+
+.stat-row {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  text-align: center;
+}
+.stat-card .stat-num {
+  font-size: 28px; font-weight: 800;
+  color: var(--primary);
+  display: block;
+}
+.stat-card .stat-label {
+  font-size: 12px; color: var(--text-light);
+  margin-top: 4px; line-height: 1.4;
+}
+
+.info-list { list-style: none; margin-bottom: 24px; }
+.info-list li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px; color: var(--text-mid);
+}
+.info-list li:last-child { border-bottom: none; }
+.info-list .li-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+.disclaimer {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  font-size: 12px;
+  color: #92400E;
+  margin-bottom: 28px;
+  line-height: 1.6;
+}
+
+.btn-primary {
+  display: block; width: 100%;
+  background: linear-gradient(135deg, #2196C9, #1565A0);
+  color: white;
+  font-size: 18px; font-weight: 700;
+  padding: 18px;
+  border: none; border-radius: var(--radius);
+  cursor: pointer;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(33,150,201,0.4);
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+.btn-primary:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(79,70,229,0.3); }
+
+.btn-secondary {
+  display: block; width: 100%;
+  background: var(--bg);
+  color: var(--primary);
+  font-size: 16px; font-weight: 600;
+  padding: 16px;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.btn-secondary:active { background: var(--primary-light); }
+
+/* ===== CHECK SCREEN ===== */
+.check-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px 12px;
+  position: sticky; top: 0; z-index: 10;
+}
+.check-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.check-nav .factor-label {
+  font-size: 13px; font-weight: 600;
+  color: var(--text-light);
+}
+.check-nav .factor-counter {
+  font-size: 13px; color: var(--text-light);
+}
+
+.progress-bar {
+  height: 6px; background: var(--border);
+  border-radius: 3px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2196C9, #4DA8D9);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.check-body { padding: 24px 20px; flex: 1; }
+
+.factor-card {
+  background: var(--bg);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.factor-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2196C9, #4DA8D9);
+}
+.factor-icon-wrap {
+  width: 80px; height: 80px;
+  background: var(--white);
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 42px;
+  box-shadow: var(--shadow-sm);
+}
+.factor-name {
+  font-size: 20px; font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.factor-q-counter {
+  font-size: 13px; color: var(--text-light);
+}
+
+.question-area { margin-bottom: 28px; }
+.question-dots {
+  display: flex; gap: 6px; justify-content: center;
+  margin-bottom: 20px;
+}
+.question-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border);
+  transition: all 0.3s;
+}
+.question-dot.answered { background: var(--primary); }
+.question-dot.current {
+  background: var(--primary);
+  width: 24px; border-radius: 4px;
+}
+
+.question-text {
+  font-size: 20px; font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  line-height: 1.5;
+  min-height: 80px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 4px;
+  transition: opacity 0.2s;
+}
+
+.answer-buttons {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-top: 28px;
+}
+.btn-answer {
+  padding: 22px 16px;
+  border: 3px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--white);
+  font-size: 20px; font-weight: 800;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  color: var(--text-mid);
+}
+.btn-answer .ans-icon { font-size: 28px; }
+.btn-answer:active { transform: scale(0.95); }
+.btn-answer.yes:active, .btn-answer.yes.selected {
+  background: #D1FAE5; border-color: var(--success);
+  color: var(--success);
+}
+.btn-answer.no:active, .btn-answer.no.selected {
+  background: #F0F9FF; border-color: #0EA5E9;
+  color: #0369A1;
+}
+
+.next-factor-area {
+  display: none;
+  padding: 16px 0;
+  text-align: center;
+}
+.next-factor-area.show { display: block; }
+
+.factor-complete-msg {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px;
+  font-size: 16px; font-weight: 600;
+  color: var(--success);
+  margin-bottom: 20px;
+}
+
+/* ===== RESULT SCREEN ===== */
+.result-header {
+  background: linear-gradient(145deg, #0D4F7A 0%, #1565A0 100%);
+  padding: 40px 24px 32px;
+  text-align: center;
+}
+.result-header h2 {
+  color: rgba(255,255,255,0.7);
+  font-size: 13px; font-weight: 600;
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.risk-gauge {
+  position: relative;
+  width: 160px; height: 160px;
+  margin: 0 auto 20px;
+}
+.risk-gauge svg { width: 100%; height: 100%; }
+.risk-gauge .gauge-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 12; }
+.risk-gauge .gauge-fill {
+  fill: none; stroke-width: 12;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 80px 80px;
+  transition: stroke-dashoffset 1s ease, stroke 0.5s ease;
+}
+.risk-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.risk-center .risk-emoji { font-size: 38px; display: block; }
+.risk-center .risk-count { color: white; font-size: 12px; margin-top: 2px; }
+
+.risk-level-badge {
+  display: inline-block;
+  padding: 8px 24px;
+  border-radius: 100px;
+  font-size: 20px; font-weight: 800;
+  margin-bottom: 8px;
+}
+.risk-level-badge.low { background: var(--success-light); color: var(--success); }
+.risk-level-badge.medium { background: var(--warning-light); color: var(--warning); }
+.risk-level-badge.high { background: var(--danger-light); color: var(--danger); }
+
+.risk-message {
+  color: rgba(255,255,255,0.85);
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.result-body { padding: 24px 16px; }
+
+.section-title {
+  font-size: 16px; font-weight: 700;
+  color: var(--text);
+  margin-bottom: 14px;
+  padding-left: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.section-title::before {
+  content: '';
+  display: block; width: 4px; height: 18px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+
+.factor-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-bottom: 28px;
+}
+.factor-result-card {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.factor-result-card.high { border-color: var(--danger); background: #FFF5F5; }
+.factor-result-card.medium { border-color: var(--warning); background: #FFFBF0; }
+.factor-result-card.low { border-color: #86EFAC; background: #F0FDF4; }
+
+.factor-result-card .card-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+.factor-result-card .card-name {
+  font-size: 12px; font-weight: 700;
+  color: var(--text);
+  line-height: 1.3; margin-bottom: 6px;
+}
+.risk-pip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600;
+  padding: 3px 8px; border-radius: 100px;
+}
+.risk-pip.high { background: var(--danger-light); color: var(--danger); }
+.risk-pip.medium { background: var(--warning-light); color: var(--warning); }
+.risk-pip.low { background: var(--success-light); color: var(--success); }
+
+/* Detail cards */
+.detail-section { margin-bottom: 16px; }
+.detail-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+}
+.detail-card.high .detail-header { border-left: 4px solid var(--danger); }
+.detail-card.medium .detail-header { border-left: 4px solid var(--warning); }
+
+.detail-header {
+  padding: 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.detail-header-left {
+  display: flex; align-items: center; gap: 12px;
+}
+.detail-header-icon { font-size: 28px; }
+.detail-header-info .detail-name {
+  font-size: 15px; font-weight: 700;
+  color: var(--text);
+}
+.detail-header-info .detail-score {
+  font-size: 12px; color: var(--text-light);
+  margin-top: 2px;
+}
+.detail-toggle {
+  width: 28px; height: 28px;
+  background: var(--bg);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  color: var(--text-light);
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+.detail-card.open .detail-toggle { transform: rotate(180deg); }
+
+.detail-body {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+}
+.detail-card.open .detail-body { display: block; }
+
+.detail-section-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 1px; text-transform: uppercase;
+  margin: 14px 0 8px;
+}
+
+.knowledge-box {
+  background: var(--primary-light);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px; color: var(--primary-dark);
+  line-height: 1.65;
+}
+
+.advice-list { list-style: none; }
+.advice-list li {
+  display: flex; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px; color: var(--text-mid);
+  line-height: 1.5;
+}
+.advice-list li:last-child { border-bottom: none; }
+.advice-list .adv-num {
+  width: 22px; height: 22px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+  flex-shrink: 0; margin-top: 1px;
+}
+
+.qa-item { margin-bottom: 10px; }
+.qa-q {
+  font-size: 14px; font-weight: 700;
+  color: var(--text);
+  display: flex; gap: 6px;
+  margin-bottom: 4px;
+}
+.qa-q .q-badge {
+  background: var(--primary);
+  color: white;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 12px;
+  flex-shrink: 0;
+}
+.qa-a {
+  font-size: 14px; color: var(--text-mid);
+  line-height: 1.6;
+  padding-left: 30px;
+}
+
+.lancet-box {
+  background: #F8F8F8;
+  border: 1px solid #E0E0E0;
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13px; color: #555;
+  line-height: 1.6;
+}
+.lancet-box::before {
+  content: '📖 参考文献に基づく知見';
+  display: block;
+  font-weight: 700; margin-bottom: 6px;
+  font-size: 12px; letter-spacing: 0.5px;
+  color: #666;
+}
+
+/* Share / Restart */
+.result-actions {
+  padding: 8px 16px 40px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.btn-share {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%;
+  background: #1DA1F2;
+  color: white;
+  font-size: 16px; font-weight: 700;
+  padding: 16px;
+  border: none; border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.btn-share:active { opacity: 0.85; }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+.fade-in { animation: fadeIn 0.3s ease forwards; }
+.slide-in { animation: slideIn 0.3s ease forwards; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ========== WELCOME SCREEN ========== -->
+  <div id="screen-welcome" class="screen active">
+    <div class="welcome-hero">
+      <!-- Hero illustration (タイトルはイラスト内に含まれています) -->
+      <div class="hero-illustration">
+        <img src="assets/yoboccha-hero.jpg" alt="よぼっちゃ - 認知症リスク診断アプリ"
+          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+        <span class="hero-copyright">©</span>
+        <div class="hero-illustration-placeholder" style="display:none">
+          <div class="hero-top-badge">今の自分を知って、これからの安心につなげる</div>
+          <div class="hero-app-name-box" style="margin-top:12px">
+            <div class="hero-brain-icon">🧠</div>
+            <div class="hero-app-name">よぼっちゃ</div>
+          </div>
+          <p class="hero-sub" style="margin-top:8px">かんたんチェックで、未来の自分をサポート</p>
+          <span class="ph-icon" style="margin-top:24px">👴👩</span>
+        </div>
+      </div>
+    </div>
+    <div class="welcome-body">
+      <div class="evidence-badge">
+        <div class="badge-icon">🔬</div>
+        <div class="badge-text">
+          <strong>国際的な研究エビデンスに基づく</strong>
+          認知症予防に関する国際委員会の研究報告（2024年）をもとに作成しています。※本アプリは医療診断ではありません。
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">45<small style="font-size:18px">%</small></span>
+          <span class="stat-label">の認知症は<br>予防できる可能性がある</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">14</span>
+          <span class="stat-label">の修正可能な<br>リスク因子</span>
+        </div>
+      </div>
+      <ul class="info-list">
+        <li><span class="li-icon">⏱️</span>所要時間：約5〜10分</li>
+        <li><span class="li-icon">✅</span>「はい」「いいえ」を選ぶだけ</li>
+        <li><span class="li-icon">🔒</span>回答データはあなたのブラウザ内のみ（サーバー送信なし）</li>
+        <li><span class="li-icon">📋</span>結果で個別の予防アドバイスを確認できます</li>
+      </ul>
+      <div class="disclaimer">
+        ⚠️ 本アプリは医療診断の代替ではありません。気になる症状がある場合は必ず医療機関にご相談ください。
+      </div>
+      <button class="btn-primary" onclick="startCheck()">チェックを始める →</button>
+    </div>
+  </div>
+
+  <!-- ========== CHECK SCREEN ========== -->
+  <div id="screen-check" class="screen">
+    <div class="check-header">
+      <div class="check-nav">
+        <span class="factor-label" id="check-factor-label">項目 1 / 14</span>
+        <span class="factor-counter" id="check-q-counter">質問 1 / 5</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="check-body">
+      <div class="factor-card">
+        <div class="factor-icon-wrap" id="check-icon">📚</div>
+        <div class="factor-name" id="check-factor-name">教育機会の不足</div>
+        <div class="factor-q-counter" id="check-q-sub">質問 1 / 5</div>
+      </div>
+      <div class="question-area">
+        <div class="question-dots" id="question-dots"></div>
+        <div class="question-text" id="question-text">質問文がここに入ります</div>
+        <div class="answer-buttons">
+          <button class="btn-answer yes" onclick="answerQuestion(true)" id="btn-yes">
+            <span class="ans-icon">👍</span>
+            <span>はい</span>
+          </button>
+          <button class="btn-answer no" onclick="answerQuestion(false)" id="btn-no">
+            <span class="ans-icon">👎</span>
+            <span>いいえ</span>
+          </button>
+        </div>
+      </div>
+      <div class="next-factor-area" id="next-factor-area">
+        <div class="factor-complete-msg">
+          <span>✅</span>
+          <span id="factor-complete-text">この項目が完了しました</span>
+        </div>
+        <button class="btn-primary" id="next-btn" onclick="nextFactor()">次の項目へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== RESULT SCREEN ========== -->
+  <div id="screen-result" class="screen">
+    <div class="result-header">
+      <h2>チェック結果</h2>
+      <div class="risk-gauge">
+        <svg viewBox="0 0 160 160">
+          <circle class="gauge-bg" cx="80" cy="80" r="60"/>
+          <circle class="gauge-fill" id="gauge-fill" cx="80" cy="80" r="60"
+            stroke-dasharray="377" stroke-dashoffset="377" stroke="#EF4444"/>
+        </svg>
+        <div class="risk-center">
+          <span class="risk-emoji" id="result-emoji">🧠</span>
+          <span class="risk-count" id="result-count">0個 要対策</span>
+        </div>
+      </div>
+      <div id="risk-level-badge" class="risk-level-badge low">リスク低</div>
+      <p class="risk-message" id="risk-message">現在のリスク状態です</p>
+    </div>
+    <div class="result-body">
+      <div class="section-title">14因子 リスク一覧</div>
+      <div class="factor-grid" id="factor-grid"></div>
+      <div class="detail-section">
+        <div class="section-title" id="detail-section-title">詳細アドバイス</div>
+        <div id="detail-cards"></div>
+      </div>
+    </div>
+    <div class="result-actions">
+      <button class="btn-share" onclick="shareResult()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        X（Twitter）でシェア
+      </button>
+      <button class="btn-secondary" onclick="restartCheck()">もう一度チェックする</button>
+      <p style="font-size:11px;color:#aaa;text-align:center;margin-top:8px;line-height:1.6;padding:0 8px;">
+        本アプリは認知症予防に関する国際的な研究知見をもとに作成しています。<br>
+        参考：Livingston G, et al. <em>The Lancet.</em> 2024.<br>
+        医療診断の代替ではありません。
+      </p>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+// ================================================================
+//  DATA: 14 Risk Factors
+// ================================================================
+const FACTORS = [
+  {
+    id: 1,
+    name: "教育機会の不足",
+    icon: "📚",
+    questions: [
+      "18歳までの間に、十分な教育を受ける機会が少なかった",
+      "学校卒業後、本を読む習慣がほとんどない",
+      "毎日がルーティン化していて、新しい知識を学ぶ機会がない",
+      "知らない言葉やニュースがあっても、自分で調べることをしない",
+      "「もう年だから新しいことを覚えても仕方がない」と思っている"
+    ],
+    knowledge: "若い時期の教育は、脳の神経ネットワークを強化し「認知予備能（コグニティブ・リザーブ）」を高めます。学びが不足すると、将来脳が萎縮し始めたときに認知症の症状が出やすくなります。",
+    advice: [
+      "語学・歴史・資格取得など、新しい分野の勉強に挑戦して脳に刺激を与える",
+      "ニュースで気になった言葉をすぐ調べ、家族に要約して話す習慣をつける",
+      "麻雀・将棋・楽器演奏など、ルールを覚えるプロセスが脳を鍛える趣味を持つ"
+    ],
+    qa: [
+      { q: "今から学んでも効果はありますか？", a: "はい。脳の神経可塑性（変化する力）は生涯続きます。何歳から始めても、新しいことを学ぶことで認知予備能を高める効果があります。" },
+      { q: "スマホのゲームも脳トレになりますか？", a: "ルールを覚えたり戦略を考えるゲームは脳への刺激になります。特に初めて挑戦するジャンルのゲームが有効です。" }
+    ],
+    lancet: "国際的な研究報告では、若年期から高齢期を通じた継続的な学習活動が認知症リスクを低減させることが示されています。「認知予備能」が高い人は、脳が損傷しても症状が出にくいとされています。"
+  },
+  {
+    id: 2,
+    name: "難聴",
+    icon: "🦻",
+    questions: [
+      "後ろから話しかけられたり、騒がしい場所では会話が聞き取りにくい",
+      "テレビやラジオの音量が、家族から「大きい」と指摘される",
+      "聞き返すのが恥ずかしく、聞こえたふりをして相槌を打つことがある",
+      "イヤホンやヘッドホンで大音量の音楽を聴く癖がある（あった）",
+      "耳鳴りが頻繁に起こる、または耳が詰まった感覚がある"
+    ],
+    knowledge: "音の刺激が脳に届かなくなると、脳の活動自体が低下（萎縮）しやすくなります。また、会話が難しくなることで「社会的孤立」や「うつ」を併発するドミノ倒しが起こります。",
+    advice: [
+      "40代以降は人間ドックや耳鼻科で定期的に聴力検診を受ける",
+      "テレビやイヤホンの音量を固定し、騒がしい場所でも上げない癖をつける",
+      "聞き取りにくさを感じたら、早期に補聴器の導入を検討する（脳の筋トレ器具として捉える）"
+    ],
+    qa: [
+      { q: "補聴器は恥ずかしいですが、本当に必要ですか？", a: "補聴器を早期に使用することで、脳への音刺激を維持し認知症リスクを下げる効果が研究で示されています。メガネと同じように「脳を守るための道具」と考えましょう。" },
+      { q: "イヤホンは何デシベルまでなら安全ですか？", a: "WHO（世界保健機関）は、85デシベル以下・1日8時間以内を推奨しています。スマホの音量は60%以下を目安にしてください。" }
+    ],
+    lancet: "国際的な研究では、難聴は認知症リスクの中で最も寄与度の高いリスク因子の一つとされています。難聴があると認知症リスクが約2倍になるとの報告もあります。"
+  },
+  {
+    id: 3,
+    name: "高LDLコレステロール",
+    icon: "🩸",
+    questions: [
+      "直近の健康診断で「脂質異常症」や「コレステロール値が高い」と言われた",
+      "揚げ物・肉の脂身・バター・洋菓子などを好んでよく食べる",
+      "魚（青魚）や大豆製品、海藻類を食べる頻度が少ない",
+      "運動不足で、ここ数年で体重（特に内臓脂肪）が増えた",
+      "血縁家族に高コレステロール血症や心疾患の人がいる"
+    ],
+    knowledge: "悪玉コレステロールが血液中に増えると、脳の血管が動脈硬化を起こし、脳血管性認知症やアルツハイマー病のリスクが跳ね上がります。",
+    advice: [
+      "サバ・イワシ・アジなど青魚を週3回以上食べて、EPA・DHAを補給する",
+      "洋菓子・バラ肉・ソーセージなど飽和脂肪酸が多い食品の頻度を減らす",
+      "食後30〜60分以内に15分ほどウォーキングして脂質代謝を促進する"
+    ],
+    qa: [
+      { q: "コレステロールは食事だけで下がりますか？", a: "食事・運動の改善で下がる場合もありますが、遺伝的要因が強い場合は医師の指示のもと薬物療法を検討することが重要です。まず健診を受けましょう。" },
+      { q: "卵はコレステロールが高いから食べない方がいいですか？", a: "近年の研究では、卵のコレステロールが血中LDLを大きく上げるとは限らないとされています。過剰摂取は避けつつ、1日1〜2個なら問題ない場合が多いです。" }
+    ],
+    lancet: "2024年の国際研究報告で新たに「高LDLコレステロール」が修正可能なリスク因子として注目されました。中年期のLDL管理が長期的な認知症予防に重要です。"
+  },
+  {
+    id: 4,
+    name: "うつ病",
+    icon: "💭",
+    questions: [
+      "この2週間以上、何に対しても興味が湧かず、楽しめない状態が続いている",
+      "理由もなく気分が落ち込んだり、不安や焦りを感じたりすることが多い",
+      "寝付きが悪い、夜中に何度も目が覚めるなど、睡眠の質が落ちている",
+      "疲れやすく、以前は簡単にできたことへのやる気が起きない",
+      "自分には価値がないと感じたり、過剰に自分を責めてしまったりする"
+    ],
+    knowledge: "うつ病による慢性的なストレスは、記憶を司る脳の「海馬」を萎縮させることが分かっています。また、活動量の低下も脳の健康を損ねます。",
+    advice: [
+      "毎朝5〜10分、日光を浴びてセロトニン（脳内の幸せ物質）を分泌させる",
+      "「しんどい時」に気軽に話せる相談相手（家族・友人・医師）をあらかじめ決めておく",
+      "「事実」と「感情」を分けてノートに書き出し、頭の中の不安を客観視する"
+    ],
+    qa: [
+      { q: "うつが改善したら認知症リスクも下がりますか？", a: "はい。適切な治療でうつ症状が改善すると、海馬の萎縮が回復する研究も報告されています。早期治療が重要です。" },
+      { q: "気分の落ち込みとうつ病の違いは何ですか？", a: "一般的に2週間以上、ほぼ毎日続く強い憂うつ感や無気力が目安です。気になる場合は精神科・心療内科に相談してください。" }
+    ],
+    lancet: "国際的な研究では、うつ病は認知症リスクを約2倍にすることが示されています。うつの予防・治療は認知症予防においても重要な介入です。"
+  },
+  {
+    id: 5,
+    name: "頭部外傷",
+    icon: "⛑️",
+    questions: [
+      "過去に交通事故やスポーツ、転倒などで頭を強く打った（脳震盪含む）ことがある",
+      "自転車やバイクに乗る際、ヘルメットを着用しないことが多い",
+      "お酒を飲むと足元がふらつき、転んだり頭をぶつけたりすることがある",
+      "足腰が弱っており、自宅の段差や階段でつまずくことが増えた",
+      "ボクシング・サッカーのヘディングなど頭部衝撃のあるスポーツを長年行っていた"
+    ],
+    knowledge: "脳震盪や頭部への強い衝撃は、脳の神経細胞を傷つけ、将来的に異常タンパク質（タウタンパクなど）が蓄積する原因になります。",
+    advice: [
+      "自転車・バイク・電動キックボードに乗る際は必ずヘルメットを着用する",
+      "自宅の動線から床のコード類・滑りやすいマット・段差など転倒リスクを排除する",
+      "片脚立ち（左右1分ずつ）やスクワットでバランス力と筋力を維持する"
+    ],
+    qa: [
+      { q: "昔の頭部外傷は今からどうすることもできませんか？", a: "過去の外傷を変えることはできませんが、その後の生活習慣（運動・食事・社会参加）を改善することで、リスクを軽減できます。" },
+      { q: "高齢者の転倒はなぜ危険ですか？", a: "高齢者は骨が弱くなっているため骨折リスクが高く、頭部打撲が硬膜下血腫などに繋がるリスクがあります。手すりの設置や筋力トレーニングで予防が重要です。" }
+    ],
+    lancet: "国際的な研究では、頭部外傷（特に中年期の繰り返しの衝撃）が認知症リスクを高める重要因子として挙げられています。高齢期の転倒予防も重要な介入です。"
+  },
+  {
+    id: 6,
+    name: "運動不足",
+    icon: "🚶",
+    questions: [
+      "デスクワーク中心で、1日の大半を座って過ごしている",
+      "1週間のうち息が弾む程度の運動（ウォーキングなど）を計150分もしていない",
+      "移動は車や電車がメインで、日常的にあまり歩かない（1日5,000歩未満）",
+      "エレベーターやエスカレーターがあると、階段を使わずに乗ってしまう",
+      "運動を始めようと思っても、三日坊主で終わってしまう"
+    ],
+    knowledge: "運動をしないと脳への血流が減り、脳の神経を育てる物質（BDNF：脳由来神経栄養因子）の分泌が低下します。また、生活習慣病の引き金にもなります。",
+    advice: [
+      "「1日20分の早歩き」を目標に、通勤や買い物のついでに実践する",
+      "エレベーターを使わず「3階までは必ず階段」をルールにする",
+      "デスクワーク中は1時間に1回タイマーを鳴らし、立ち上がって1分間足踏みする"
+    ],
+    qa: [
+      { q: "週何回運動すればいいですか？", a: "WHOのガイドラインでは、週150〜300分の中強度有酸素運動（ウォーキング等）が推奨されています。毎日でなくても週3〜5回に分けてもOKです。" },
+      { q: "筋トレと有酸素運動、どちらが良いですか？", a: "認知症予防には特に有酸素運動が効果的とされています。ただし、筋トレも転倒予防や代謝改善に役立つので、両方組み合わせるのが理想です。" }
+    ],
+    lancet: "国際的な研究では、身体的不活動が認知症リスクを高める重要因子とされています。週150分の中強度有酸素運動で認知症リスクが約35%低下するという研究があります。"
+  },
+  {
+    id: 7,
+    name: "糖尿病",
+    icon: "🍬",
+    questions: [
+      "健康診断で「血糖値が高い（空腹時血糖・HbA1cの異常）」と指摘された",
+      "白米・パン・麺類や甘いジュース・お菓子が大好きで食べる頻度が高い",
+      "食事の際、野菜からではなくご飯やメインのおかずから先に食べる",
+      "喉が異常に渇く・尿の回数が増えた・急激に体重が減るなどの症状がある",
+      "満腹になるまで食べないと気が済まない"
+    ],
+    knowledge: "高血糖状態が続くと血管が傷つき、脳梗塞のリスクが高まります。また、インスリンの働きが鈍くなると、脳内の老廃物（アミロイドβ）の分解が進みにくくなります。",
+    advice: [
+      "食事の際、まず野菜・スープ（食物繊維）を完食し、その後に肉・ご飯の順で食べる",
+      "甘い缶コーヒーや清涼飲料水を水・麦茶・炭酸水に替える",
+      "夕食は寝る3時間前までに済ませる（夜遅い食事はインスリン効果を下げる）"
+    ],
+    qa: [
+      { q: "血糖値が少し高いだけでも認知症リスクが上がりますか？", a: "はい。「糖尿病予備群」と呼ばれる段階でも認知症リスクが高まることが示されています。早期の生活習慣改善が非常に重要です。" },
+      { q: "甘いものは完全にやめないといけませんか？", a: "完全禁止より、量・頻度・食べるタイミングの工夫が大切です。食後にデザートとして少量食べると血糖値への影響が小さくなります。" }
+    ],
+    lancet: "国際的な研究では、2型糖尿病は認知症リスクを1.5〜2倍高めるとされています。血糖コントロールは認知症予防においても重要な介入ターゲットです。"
+  },
+  {
+    id: 8,
+    name: "喫煙",
+    icon: "🚭",
+    questions: [
+      "現在、タバコ（加熱式タバコ含む）を日常的に吸っている",
+      "過去に長期間タバコを吸っており、禁煙してからまだ数年しか経っていない",
+      "ストレスを感じると、ついタバコに手が伸びてしまう",
+      "家族や職場に喫煙者が多く、受動喫煙の機会が日常的にある",
+      "「タバコを吸わないと集中できない・落ち着かない」と感じる"
+    ],
+    knowledge: "タバコに含まれる有害物質は強力に血管を収縮させ、動脈硬化を促進します。また、脳に強い酸化ストレスを与えます。",
+    advice: [
+      "「禁煙外来」を予約して医師の力を借りる（ニコチンパッチや内服薬が処方可能）",
+      "タバコを吸いたくなるトリガー（喫煙所の近くを通らない・お酒の席を控えるなど）を外す",
+      "吸いたくなったら冷たい水を飲むか、ミント系ガムを噛んで3分間やり過ごす"
+    ],
+    qa: [
+      { q: "禁煙すれば認知症リスクは下がりますか？", a: "はい。禁煙後5年以上経過すると、非喫煙者に近いレベルまでリスクが低下するとされています。今すぐ禁煙することに意味があります。" },
+      { q: "加熱式タバコも同じようにリスクがありますか？", a: "加熱式タバコにもニコチンや有害物質が含まれており、脳への影響がないとは言えません。紙巻きタバコほどではないとされていますが、禁煙が最善です。" }
+    ],
+    lancet: "国際的な研究では、喫煙による認知症リスクの増加が確認されており、禁煙は最も効果的な予防介入の一つとされています。"
+  },
+  {
+    id: 9,
+    name: "高血圧",
+    icon: "💓",
+    questions: [
+      "健康診断や自宅計測で、上の血圧が130mmHg・下の血圧が80mmHgを超えている",
+      "ラーメンのスープを飲み干したり、濃い味付けの食事を好む",
+      "自宅に血圧計がなく、自分の普段の血圧数値を把握していない",
+      "ストレスを強く感じる環境にあり、イライラしやすい",
+      "慢性的に睡眠不足が続いている"
+    ],
+    knowledge: "高い圧力が血管にかかり続けると、脳の細い血管がボロボロになり、脳に微小な出血や梗塞を引き起こします。",
+    advice: [
+      "汁物のスープを半分以上残す（ラーメン・うどん・味噌汁）だけで塩分摂取量が大幅減",
+      "減塩醤油・減塩塩に切り替え、味の物足りなさはだし・レモン・スパイスで補う",
+      "毎朝・夕の決まった時間に血圧を測って手帳に記録し、数値を「見える化」する"
+    ],
+    qa: [
+      { q: "血圧はどのくらいまで下げると良いですか？", a: "一般的には収縮期血圧（上）130mmHg未満、拡張期血圧（下）80mmHg未満が目標とされています。持病がある場合は医師と相談してください。" },
+      { q: "血圧は朝と夜のどちらに測るのが正確ですか？", a: "両方測ることが推奨されています。朝は起床後1時間以内・食事前・排尿後が正確です。夜は就寝前に測ります。" }
+    ],
+    lancet: "国際的な研究では、中年期の高血圧が認知症リスクを1.6倍以上高めることが示されています。特に45〜65歳の血圧管理が予防効果が高いとされています。"
+  },
+  {
+    id: 10,
+    name: "肥満",
+    icon: "⚖️",
+    questions: [
+      "BMI（体重÷身長m÷身長m）を計算すると「25以上」である",
+      "20代の頃と比べて体重が10kg以上増加している",
+      "お腹周りがぽっこり出ており、ズボンのサイズが年々大きくなっている",
+      "夜遅い時間に食事したり、夜食を食べる習慣がある",
+      "早食いの傾向があり、人よりも食べるスピードが早い"
+    ],
+    knowledge: "特に中年期の肥満（BMI 30以上など）は、体内で慢性的な炎症を引き起こし、血管障害やアルツハイマー病のリスクを高めます。",
+    advice: [
+      "「一口につき20回以上」噛んで食べる（満腹中枢が刺激されドカ食い防止に）",
+      "食事のボリュームを「朝＞昼＞夜」にして、夜のご飯量を半分に減らす",
+      "毎日決まった時間に体重計に乗り数字で「見える化」して自己管理意識を高める"
+    ],
+    qa: [
+      { q: "何kg痩せれば効果がありますか？", a: "体重の5〜10%を減らすだけで、血圧・血糖・コレステロールなど複数のリスク因子が改善されるとされています。大きな目標より小さな継続が大切です。" },
+      { q: "BMI25以下でもお腹が出ていたら危険ですか？", a: "はい。BMIが正常範囲でも内臓脂肪型肥満（ウエスト周囲径：男性85cm・女性90cm以上）はリスクが高いです。ウエスト計測も参考にしてください。" }
+    ],
+    lancet: "国際的な研究では、中年期の肥満が認知症リスクを高める修正可能な因子とされています。体重管理は複数のリスク因子を同時に改善できる効果的なアプローチです。"
+  },
+  {
+    id: 11,
+    name: "過度の飲酒",
+    icon: "🍺",
+    questions: [
+      "毎日お酒を飲んでおり、週に1日も「休肝日」がない",
+      "1日の飲酒量がビール中瓶1本（または日本酒1合）を超えている",
+      "お酒の勢いで記憶をなくしたり、翌朝ひどい二日酔いになることがよくある",
+      "ストレス発散や寝酒（眠るため）としてお酒を飲む習慣がある",
+      "周囲から「少しお酒を減らしたら？」と心配されたことがある"
+    ],
+    knowledge: "大量のアルコール（週21単位以上、純アルコール約168g以上＝ビール中瓶1日2本以上を毎日）は、脳の細胞を直接萎縮させます。",
+    advice: [
+      "カレンダーに「休肝日」を先に書き込み、週2日は飲まない日を固定する",
+      "お気に入りのノンアルコール飲料（最近は品質が高い）を常備して代用する",
+      "お酒を飲む際は同量の水（チェイサー）を交互に飲み、総飲酒量を減らす"
+    ],
+    qa: [
+      { q: "少量のお酒は体に良いと聞きますが？", a: "かつて「適度な飲酒は健康に良い」とされていましたが、最新の研究ではアルコールに「安全な量」はないとされています。飲むなら少量にとどめることが重要です。" },
+      { q: "ビールより焼酎・ウイスキーの方が良いですか？", a: "種類よりも「純アルコール量」が重要です。焼酎・ウイスキーはアルコール度数が高いため、量に注意が必要です。" }
+    ],
+    lancet: "国際的な研究では、過度の飲酒（週21単位以上）が認知症リスクを高める重要因子とされています。アルコールは脳に直接作用し、神経細胞を傷つけます。"
+  },
+  {
+    id: 12,
+    name: "社会的孤立",
+    icon: "👥",
+    questions: [
+      "家族以外の人（友人・隣人など）と数日以上まったく会話をしないことがある",
+      "地域活動・趣味のサークル・ボランティアなど所属しているコミュニティがない",
+      "困ったときに気軽に相談できる友人や知人が身近にいない",
+      "休日は自宅から一歩も出ず、1人でテレビやスマホを見て過ごすことが多い",
+      "人付き合いが面倒だと感じ、他者からの誘いを断りがちである"
+    ],
+    knowledge: "人との会話や交流は、脳をフル回転させる高度な認知活動です。他者との関わりがなくなると、脳への刺激が激減し認知機能が急速に衰えます。",
+    advice: [
+      "地域のゴミ拾い・見守り・ボランティアなど「人から感謝される場」に参加する",
+      "友人や家族と「週1回外食・お茶をする」約束を先にカレンダーに入れる",
+      "体操教室・カラオケサークル・パソコン教室など毎週同じ曜日に顔を合わせる場を作る"
+    ],
+    qa: [
+      { q: "オンラインの交流でも効果がありますか？", a: "対面に比べると刺激は少ないですが、完全な孤立よりは良いとされています。ビデオ通話や SNS での交流も「孤立ゼロ」の維持に役立ちます。" },
+      { q: "内向的な性格でも社会参加は必要ですか？", a: "はい、ただし無理に大勢と交流する必要はありません。1〜2人でも定期的に会う人がいること、そして「役割を持つこと」が脳への刺激になります。" }
+    ],
+    lancet: "国際的な研究では、社会的孤立が認知症リスクを1.6倍高めるとされています。社会参加・人とのつながりは認知症予防における最も重要な要素の一つです。"
+  },
+  {
+    id: 13,
+    name: "大気汚染",
+    icon: "🌫️",
+    questions: [
+      "交通量の非常に多い幹線道路や工場の近くに住んでいる、または長時間滞在する",
+      "外出時にPM2.5や黄砂の情報をあまりチェックしない",
+      "排気ガスが気になる場所でも、マスクをせずに出歩くことが多い",
+      "自宅に空気清浄機がない、または換気をほとんど行わない",
+      "自宅周辺で野焼きや煙の多い環境が日常的にある"
+    ],
+    knowledge: "排気ガスやPM2.5などの微小粒子状物質は、鼻の粘膜から脳に直接侵入し、脳内で慢性的な炎症や神経変性を引き起こすことが分かっています。",
+    advice: [
+      "運動する際は幹線道路沿いを避け、公園や住宅街の中の道を選ぶ",
+      "PM2.5・黄砂が多い日はアプリで確認し、窓を閉めて洗濯物も室内干しにする",
+      "リビングや寝室にHEPAフィルター付き空気清浄機を設置して長時間の吸入を防ぐ"
+    ],
+    qa: [
+      { q: "マスクで大気汚染は防げますか？", a: "一般的なサージカルマスクはPM2.5の吸入を完全には防ぎません。PM2.5対策には「N95」や「PM2.5対応」と記載のある高性能マスクが有効です。" },
+      { q: "都市部に住んでいると認知症リスクが高くなりますか？", a: "交通量の多い幹線道路沿いほどリスクが高いとされています。ただし都市部でも、換気・空気清浄機・運動場所の選択などで対策できます。" }
+    ],
+    lancet: "国際的な研究では、大気汚染（特にPM2.5）への長期暴露が認知症リスクを高めることが示されています。居住環境の改善とともに個人の対策も重要です。"
+  },
+  {
+    id: 14,
+    name: "視力障害",
+    icon: "👁️",
+    questions: [
+      "小さな文字が見えづらいが、老眼鏡などの適切なメガネを作っていない",
+      "新聞の文字やテレビ画面が最近かすんだり、二重に見えたりする",
+      "目の定期検診（白内障・緑内障のチェック）を1年以上受けていない",
+      "暗い場所に行くと極端に物が見えにくく、歩くのが怖いと感じる",
+      "視力が落ちているせいで、本を読むことや外出がおっくうになっている"
+    ],
+    knowledge: "白内障や緑内障、糖尿病網膜症などで視力が落ちると、脳に入る視覚情報が減って脳が衰えます。また、見えづらさから外出を控え、社会的孤立や運動不足に直結します。",
+    advice: [
+      "年1回、眼科で眼圧と眼底の検査を受ける（緑内障・加齢黄斑変性の早期発見）",
+      "2〜3年に一度はメガネ・老眼鏡の度数を合わせ直す",
+      "スマホや読書をする際は部屋を明るくし、目への過度な負担を減らす"
+    ],
+    qa: [
+      { q: "白内障の手術を受けた方が良いですか？", a: "白内障が日常生活に支障をきたすほど進行していれば、手術で視力を回復することで認知症リスクも下がるとされています。眼科医と相談してください。" },
+      { q: "老眼鏡をかけると目が悪くなると聞きますが本当ですか？", a: "これは誤解です。適切な度数のメガネをかけることで目への負担が減り、疲れ目や頭痛が改善されます。度の合わないメガネを使う方が問題です。" }
+    ],
+    lancet: "2024年の国際研究報告で「視力障害」が新たに修正可能なリスク因子として注目されました。視力矯正（メガネ・白内障手術）が認知症予防に寄与することが示されています。"
+  }
+];
+
+// ================================================================
+//  STATE
+// ================================================================
+let state = {
+  factorIndex: 0,    // 0-13
+  questionIndex: 0,  // 0-4
+  answers: {},       // { factorId: [bool, bool, bool, bool, bool] }
+  factorDone: false, // current factor completed
+  answering: false   // debounce flag
+};
+
+// ================================================================
+//  NAVIGATION
+// ================================================================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startCheck() {
+  state.factorIndex = 0;
+  state.questionIndex = 0;
+  state.answers = {};
+  state.factorDone = false;
+  showScreen('check');
+  renderQuestion();
+}
+
+function restartCheck() {
+  startCheck();
+}
+
+// ================================================================
+//  CHECK LOGIC
+// ================================================================
+function renderQuestion() {
+  const factor = FACTORS[state.factorIndex];
+  const qi = state.questionIndex;
+  const totalFactors = FACTORS.length;
+  const totalQ = factor.questions.length;
+
+  // Header
+  document.getElementById('check-factor-label').textContent =
+    `項目 ${state.factorIndex + 1} / ${totalFactors}`;
+  document.getElementById('check-q-counter').textContent =
+    `質問 ${qi + 1} / ${totalQ}`;
+
+  // Progress bar: based on total questions answered
+  const totalAnswered = Object.values(state.answers).reduce((sum, arr) => sum + arr.length, 0);
+  const totalAllQ = FACTORS.length * 5;
+  const pct = Math.round((totalAnswered / totalAllQ) * 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Factor card
+  document.getElementById('check-icon').textContent = factor.icon;
+  document.getElementById('check-factor-name').textContent = factor.name;
+  document.getElementById('check-q-sub').textContent = `質問 ${qi + 1} / ${totalQ}`;
+
+  // Dots
+  const dotsEl = document.getElementById('question-dots');
+  dotsEl.innerHTML = '';
+  for (let i = 0; i < totalQ; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'question-dot';
+    const answers = state.answers[factor.id] || [];
+    if (i < answers.length) dot.classList.add('answered');
+    else if (i === qi) dot.classList.add('current');
+    dotsEl.appendChild(dot);
+  }
+
+  // Question text
+  const qEl = document.getElementById('question-text');
+  qEl.style.opacity = '0';
+  setTimeout(() => {
+    qEl.textContent = factor.questions[qi];
+    qEl.style.opacity = '1';
+    qEl.style.transition = 'opacity 0.25s ease';
+  }, 50);
+
+  // Reset buttons
+  document.getElementById('btn-yes').classList.remove('selected');
+  document.getElementById('btn-no').classList.remove('selected');
+  document.getElementById('btn-yes').disabled = false;
+  document.getElementById('btn-no').disabled = false;
+
+  // Next area
+  document.getElementById('next-factor-area').classList.remove('show');
+
+  state.answering = false;
+}
+
+function answerQuestion(isYes) {
+  if (state.answering) return;
+  state.answering = true;
+
+  const factor = FACTORS[state.factorIndex];
+
+  // Visual feedback
+  if (isYes) {
+    document.getElementById('btn-yes').classList.add('selected');
+  } else {
+    document.getElementById('btn-no').classList.add('selected');
+  }
+  document.getElementById('btn-yes').disabled = true;
+  document.getElementById('btn-no').disabled = true;
+
+  // Store answer
+  if (!state.answers[factor.id]) state.answers[factor.id] = [];
+  state.answers[factor.id].push(isYes);
+
+  const nextQ = state.questionIndex + 1;
+
+  if (nextQ < factor.questions.length) {
+    // Next question
+    setTimeout(() => {
+      state.questionIndex = nextQ;
+      renderQuestion();
+    }, 380);
+  } else {
+    // Factor complete
+    setTimeout(() => {
+      showFactorComplete();
+    }, 380);
+  }
+}
+
+function showFactorComplete() {
+  const factor = FACTORS[state.factorIndex];
+  const score = (state.answers[factor.id] || []).filter(Boolean).length;
+  const level = score >= 3 ? '🔴 要対策' : score >= 1 ? '🟡 注意' : '🟢 問題なし';
+
+  document.getElementById('next-factor-area').classList.add('show');
+
+  const isLast = state.factorIndex === FACTORS.length - 1;
+  document.getElementById('factor-complete-text').textContent =
+    `${factor.name}：${level}（${score}/5）`;
+
+  const nextBtn = document.getElementById('next-btn');
+  if (isLast) {
+    nextBtn.textContent = '結果を見る 🎯';
+  } else {
+    nextBtn.textContent = `次：${FACTORS[state.factorIndex + 1].name} →`;
+  }
+
+  // Update dots to all answered
+  const dotsEl = document.getElementById('question-dots');
+  dotsEl.querySelectorAll('.question-dot').forEach(d => {
+    d.classList.remove('current');
+    d.classList.add('answered');
+  });
+}
+
+function nextFactor() {
+  const isLast = state.factorIndex === FACTORS.length - 1;
+  if (isLast) {
+    showResult();
+    return;
+  }
+  state.factorIndex++;
+  state.questionIndex = 0;
+  state.factorDone = false;
+  renderQuestion();
+  window.scrollTo(0, 0);
+}
+
+// ================================================================
+//  SCORE CALCULATION
+// ================================================================
+function calcScores() {
+  return FACTORS.map(f => {
+    const ans = state.answers[f.id] || [];
+    const score = ans.filter(Boolean).length;
+    const level = score >= 3 ? 'high' : score >= 1 ? 'medium' : 'low';
+    return { factor: f, score, level };
+  });
+}
+
+// ================================================================
+//  RESULT SCREEN
+// ================================================================
+function showResult() {
+  showScreen('result');
+  const scores = calcScores();
+  const highCount = scores.filter(s => s.level === 'high').length;
+  const medCount = scores.filter(s => s.level === 'medium').length;
+
+  // Overall risk
+  let overallLevel, overallMsg, emoji;
+  if (highCount >= 7) {
+    overallLevel = 'high';
+    overallMsg = '複数の因子で対策が必要です。まずは1つずつ、取り組みやすいことから始めてみましょう。';
+    emoji = '⚠️';
+  } else if (highCount >= 3) {
+    overallLevel = 'medium';
+    overallMsg = 'いくつかの因子でリスクが見られます。日常生活の小さな改善から始めることで、大きな変化につながります。';
+    emoji = '🔶';
+  } else {
+    overallLevel = 'low';
+    overallMsg = '現時点では多くの因子でリスクが低い状態です。この生活習慣を続けながら、気になる因子の予防も意識しましょう。';
+    emoji = '✨';
+  }
+
+  // Gauge
+  const circumference = 2 * Math.PI * 60;
+  const gaugeEl = document.getElementById('gauge-fill');
+  const fillRatio = Math.min(highCount / 14, 1);
+  const dashoffset = circumference * (1 - fillRatio * 0.75);
+  const gaugeColor = overallLevel === 'high' ? '#EF4444' : overallLevel === 'medium' ? '#F59E0B' : '#10B981';
+
+  setTimeout(() => {
+    gaugeEl.style.strokeDashoffset = dashoffset;
+    gaugeEl.style.stroke = gaugeColor;
+  }, 200);
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-count').textContent = `要対策 ${highCount}項目`;
+
+  const badge = document.getElementById('risk-level-badge');
+  badge.className = `risk-level-badge ${overallLevel}`;
+  badge.textContent = overallLevel === 'high' ? 'リスク高' : overallLevel === 'medium' ? 'リスク中' : 'リスク低';
+  document.getElementById('risk-message').textContent = overallMsg;
+
+  // Factor grid
+  const grid = document.getElementById('factor-grid');
+  grid.innerHTML = '';
+  scores.forEach(s => {
+    const card = document.createElement('div');
+    card.className = `factor-result-card ${s.level}`;
+    const levelLabel = s.level === 'high' ? '要対策' : s.level === 'medium' ? '注意' : '良好';
+    const levelDot = s.level === 'high' ? '🔴' : s.level === 'medium' ? '🟡' : '🟢';
+    card.innerHTML = `
+      <span class="card-icon">${s.factor.icon}</span>
+      <div class="card-name">${s.factor.name}</div>
+      <span class="risk-pip ${s.level}">${levelDot} ${levelLabel}</span>
+    `;
+    card.onclick = () => {
+      const detailCard = document.getElementById('detail-' + s.factor.id);
+      if (detailCard) {
+        detailCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (!detailCard.classList.contains('open')) detailCard.classList.add('open');
+      }
+    };
+    grid.appendChild(card);
+  });
+
+  // Detail cards - show high first, then medium
+  const detailEl = document.getElementById('detail-cards');
+  detailEl.innerHTML = '';
+  const titleEl = document.getElementById('detail-section-title');
+
+  const highScores = scores.filter(s => s.level === 'high');
+  const medScores = scores.filter(s => s.level === 'medium');
+  const displayScores = [...highScores, ...medScores];
+
+  if (displayScores.length === 0) {
+    titleEl.style.display = 'none';
+    const msg = document.createElement('div');
+    msg.style.cssText = 'text-align:center;padding:32px 16px;color:#6B7280;font-size:15px;';
+    msg.innerHTML = '🎉<br><strong style="color:#059669;font-size:18px">素晴らしい！</strong><br>現時点では対策が必要な因子はありませんでした。<br>この生活習慣を維持しましょう。';
+    detailEl.appendChild(msg);
+  } else {
+    titleEl.style.display = 'flex';
+    displayScores.forEach(s => {
+      detailEl.appendChild(createDetailCard(s));
+    });
+  }
+}
+
+function createDetailCard(scoreObj) {
+  const f = scoreObj.factor;
+  const score = scoreObj.score;
+  const level = scoreObj.level;
+
+  const card = document.createElement('div');
+  card.className = `detail-card ${level}`;
+  card.id = 'detail-' + f.id;
+  if (level === 'high') card.classList.add('open'); // high risk: expanded by default
+
+  const levelLabel = level === 'high' ? '🔴 要対策' : '🟡 注意';
+
+  card.innerHTML = `
+    <div class="detail-header" onclick="toggleDetail('${f.id}')">
+      <div class="detail-header-left">
+        <span class="detail-header-icon">${f.icon}</span>
+        <div class="detail-header-info">
+          <div class="detail-name">${f.name}</div>
+          <div class="detail-score">${levelLabel}｜${score}/5問 該当</div>
+        </div>
+      </div>
+      <div class="detail-toggle">▼</div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section-label">🔍 なぜ認知症リスクになるの？</div>
+      <div class="knowledge-box">${f.knowledge}</div>
+
+      <div class="detail-section-label">✅ 今日からできる予防策</div>
+      <ul class="advice-list">
+        ${f.advice.map((a, i) => `
+          <li>
+            <span class="adv-num">${i + 1}</span>
+            <span>${a}</span>
+          </li>
+        `).join('')}
+      </ul>
+
+      <div class="detail-section-label">❓ よくある質問</div>
+      ${f.qa.map(qa => `
+        <div class="qa-item">
+          <div class="qa-q"><span class="q-badge">Q</span>${qa.q}</div>
+          <div class="qa-a">${qa.a}</div>
+        </div>
+      `).join('')}
+
+      <div class="detail-section-label">📖 エビデンス</div>
+      <div class="lancet-box">${f.lancet}</div>
+    </div>
+  `;
+  return card;
+}
+
+function toggleDetail(factorId) {
+  const card = document.getElementById('detail-' + factorId);
+  card.classList.toggle('open');
+}
+
+// ================================================================
+//  SHARE
+// ================================================================
+function shareResult() {
+  const scores = calcScores();
+  const highCount = scores.filter(s => s.level === 'high').length;
+  const text = `認知症リスク診断アプリ「よぼっちゃ」でチェックしました！\n要対策リスク因子：${highCount}項目\n\n14因子のかんたんチェックができます。\nあなたもぜひ試してみてください👇\n#よぼっちゃ #認知症予防`;
+  const url = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+  window.open(url, '_blank');
+}
+</script>
+</body>
+</html>
