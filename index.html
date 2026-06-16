@@ -630,7 +630,6 @@ body {
       <div class="hero-illustration">
         <img src="yoboccha-hero.jpg" alt="よぼっちゃ - 認知症リスク診断アプリ"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
-        <span class="hero-copyright">©</span>
         <div class="hero-illustration-placeholder" style="display:none">
           <div class="hero-top-badge">今の自分を知って、これからの安心につなげる</div>
           <div class="hero-app-name-box" style="margin-top:12px">
@@ -702,6 +701,9 @@ body {
             <span class="ans-icon">👎</span>
             <span>いいえ</span>
           </button>
+        </div>
+        <div style="text-align:center; margin-top:12px;">
+          <button id="btn-back" onclick="goBack()" style="background:none; border:none; color:var(--text-light); font-size:14px; cursor:pointer; padding:8px 16px; border-radius:8px; text-decoration:underline;">← 前の質問に戻る</button>
         </div>
       </div>
       <div class="next-factor-area" id="next-factor-area">
@@ -1174,7 +1176,49 @@ function renderQuestion() {
   // Next area
   document.getElementById('next-factor-area').classList.remove('show');
 
+  // Back button: hide on very first question
+  const backBtn = document.getElementById('btn-back');
+  if (backBtn) {
+    backBtn.style.visibility = (state.factorIndex === 0 && state.questionIndex === 0) ? 'hidden' : 'visible';
+  }
+
   state.answering = false;
+}
+
+function goBack() {
+  if (state.answering) return;
+
+  // If factor complete screen is showing, go back to last question of this factor
+  if (document.getElementById('next-factor-area').classList.contains('show')) {
+    const factor = FACTORS[state.factorIndex];
+    // Remove last answer of this factor
+    if (state.answers[factor.id] && state.answers[factor.id].length > 0) {
+      state.answers[factor.id].pop();
+    }
+    state.questionIndex = factor.questions.length - 1;
+    renderQuestion();
+    return;
+  }
+
+  if (state.questionIndex > 0) {
+    // Go back within same factor
+    const factor = FACTORS[state.factorIndex];
+    if (state.answers[factor.id] && state.answers[factor.id].length > 0) {
+      state.answers[factor.id].pop();
+    }
+    state.questionIndex--;
+    renderQuestion();
+  } else if (state.factorIndex > 0) {
+    // Go back to previous factor's last question
+    state.factorIndex--;
+    const prevFactor = FACTORS[state.factorIndex];
+    if (state.answers[prevFactor.id] && state.answers[prevFactor.id].length > 0) {
+      state.answers[prevFactor.id].pop();
+    }
+    state.questionIndex = prevFactor.questions.length - 1;
+    renderQuestion();
+  }
+  // else: first question of first factor, do nothing
 }
 
 function answerQuestion(isYes) {
