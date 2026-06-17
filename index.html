@@ -425,6 +425,78 @@ body {
   margin: 0 auto;
 }
 
+/* ===== REMAINING COUNTER ===== */
+.remaining-counter {
+  font-size: 11px;
+  color: var(--text-light);
+  background: rgba(255,255,255,0.6);
+  border: 1px solid #E5E7EB;
+  border-radius: 100px;
+  padding: 2px 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ===== OVERALL EVAL CARD ===== */
+.overall-eval-card {
+  margin: 0 16px 0;
+  border-radius: 0 0 20px 20px;
+  padding: 20px 20px 16px;
+  position: relative;
+}
+.overall-eval-card.low  { background: linear-gradient(135deg,#ECFDF5,#D1FAE5); border-top: 3px solid var(--success); }
+.overall-eval-card.medium { background: linear-gradient(135deg,#FFFBEB,#FEF3C7); border-top: 3px solid var(--warning); }
+.overall-eval-card.high { background: linear-gradient(135deg,#FFF1F2,#FFE4E6); border-top: 3px solid var(--danger); }
+.overall-eval-top {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 10px;
+}
+.overall-eval-icon { font-size: 36px; line-height: 1; }
+.overall-eval-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--text-light); margin-bottom: 2px;
+}
+.overall-eval-title {
+  font-size: 18px; font-weight: 800; color: var(--text-dark);
+}
+.overall-eval-text {
+  font-size: 14px; line-height: 1.75; color: var(--text-main); margin: 0 0 10px;
+}
+.overall-eval-tips {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.eval-tip {
+  display: flex; align-items: flex-start; gap: 8px;
+  font-size: 13px; color: var(--text-main); line-height: 1.5;
+}
+.eval-tip-num {
+  min-width: 22px; height: 22px;
+  background: var(--primary); color: white;
+  border-radius: 50%;
+  font-size: 11px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+
+/* ===== RADAR CHART ===== */
+.radar-section { padding: 0 0 8px; }
+.radar-wrap {
+  display: flex; justify-content: center;
+  padding: 8px 0 4px;
+}
+#radar-chart { max-width: 320px; width: 100%; height: auto; }
+.radar-legend {
+  display: flex; justify-content: center; gap: 16px;
+  font-size: 12px; color: var(--text-light);
+  margin-top: 4px; margin-bottom: 16px;
+}
+.legend-dot {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 50%; margin-right: 4px; vertical-align: middle;
+}
+.legend-dot.high   { background: #EF4444; }
+.legend-dot.medium { background: #F59E0B; }
+.legend-dot.low    { background: #10B981; }
+
 .result-body { padding: 24px 16px; }
 
 .section-title {
@@ -678,6 +750,7 @@ body {
       <div class="check-nav">
         <span class="factor-label" id="check-factor-label">項目 1 / 14</span>
         <span class="factor-counter" id="check-q-counter">質問 1 / 5</span>
+        <span class="remaining-counter" id="check-remaining">残り70問</span>
       </div>
       <div class="progress-bar">
         <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
@@ -734,7 +807,33 @@ body {
       <div id="risk-level-badge" class="risk-level-badge low">リスク低</div>
       <p class="risk-message" id="risk-message">現在のリスク状態です</p>
     </div>
+    <!-- 総合評価カード -->
+    <div id="overall-eval-card" class="overall-eval-card low">
+      <div class="overall-eval-top">
+        <span class="overall-eval-icon" id="eval-icon">✨</span>
+        <div>
+          <div class="overall-eval-label">総合評価</div>
+          <div class="overall-eval-title" id="eval-title">生活習慣は良好です</div>
+        </div>
+      </div>
+      <p class="overall-eval-text" id="eval-text">メッセージ</p>
+      <div class="overall-eval-tips" id="eval-tips"></div>
+    </div>
+
     <div class="result-body">
+      <!-- レーダーチャート -->
+      <div class="radar-section">
+        <div class="section-title">14因子 リスクレーダー</div>
+        <div class="radar-wrap">
+          <canvas id="radar-chart" width="320" height="320"></canvas>
+        </div>
+        <div class="radar-legend">
+          <span class="legend-dot high"></span>要対策
+          <span class="legend-dot medium"></span>注意
+          <span class="legend-dot low"></span>良好
+        </div>
+      </div>
+
       <div class="section-title">14因子 リスク一覧</div>
       <div class="factor-grid" id="factor-grid"></div>
       <div class="detail-section">
@@ -1141,6 +1240,11 @@ function renderQuestion() {
   const pct = Math.round((totalAnswered / totalAllQ) * 100);
   document.getElementById('progress-fill').style.width = pct + '%';
 
+  // Remaining counter
+  const remaining = totalAllQ - totalAnswered;
+  const remainingEl = document.getElementById('check-remaining');
+  if (remainingEl) remainingEl.textContent = `残り${remaining}問`;
+
   // Factor card
   document.getElementById('check-icon').textContent = factor.icon;
   document.getElementById('check-factor-name').textContent = factor.name;
@@ -1352,6 +1456,57 @@ function showResult() {
   badge.textContent = overallLevel === 'high' ? 'リスク高' : overallLevel === 'medium' ? 'リスク中' : 'リスク低';
   document.getElementById('risk-message').textContent = overallMsg;
 
+  // ===== 総合評価カード =====
+  const evalCard = document.getElementById('overall-eval-card');
+  evalCard.className = `overall-eval-card ${overallLevel}`;
+
+  const evalData = {
+    high: {
+      icon: '⚠️',
+      title: '今すぐ生活習慣の見直しを',
+      text: `14因子のうち ${highCount}項目でリスクが高く、${medCount}項目で注意が必要な状態です。すべてを一度に変えようとする必要はありません。詳細アドバイスを参考に、今日から1つだけ取り組んでみてください。`,
+      tips: [
+        '最もリスクが高い因子から1つ選んで集中的に対策する',
+        '「良好」な因子の生活習慣はそのまま維持する',
+        '主治医や専門家に相談することも検討してください',
+      ]
+    },
+    medium: {
+      icon: '🔶',
+      title: 'いくつかの因子で対策が必要です',
+      text: `${highCount}項目で対策が必要、${medCount}項目で注意が必要な状態です。早めの対策が将来のリスク低減につながります。小さな変化の積み重ねが大切です。`,
+      tips: [
+        '対策が必要な因子のアドバイスを1つずつ実践する',
+        '「注意」因子も放置せず、生活習慣の改善を意識する',
+        '3ヶ月後にもう一度このチェックを受けてみましょう',
+      ]
+    },
+    low: {
+      icon: '✨',
+      title: '現在のリスクは低い状態です',
+      text: `ほとんどの因子でリスクが低く、バランスの良い生活習慣が維持できています${medCount > 0 ? `（注意因子：${medCount}項目）` : ''}。この状態を維持しながら、さらなる予防を意識しましょう。`,
+      tips: [
+        '良い生活習慣を継続することが最大の予防策',
+        medCount > 0 ? '「注意」因子のアドバイスも確認しておきましょう' : '定期的に脳の健康チェックを続けましょう',
+        '年1回のリスクチェックで変化を早期に把握できます',
+      ]
+    }
+  };
+  const ed = evalData[overallLevel];
+  document.getElementById('eval-icon').textContent = ed.icon;
+  document.getElementById('eval-title').textContent = ed.title;
+  document.getElementById('eval-text').textContent = ed.text;
+  const tipsEl = document.getElementById('eval-tips');
+  tipsEl.innerHTML = ed.tips.map((t, i) => `
+    <div class="eval-tip">
+      <span class="eval-tip-num">${i + 1}</span>
+      <span>${t}</span>
+    </div>
+  `).join('');
+
+  // ===== レーダーチャート =====
+  setTimeout(() => drawRadarChart(scores), 300);
+
   // Factor grid
   const grid = document.getElementById('factor-grid');
   grid.innerHTML = '';
@@ -1453,6 +1608,117 @@ function createDetailCard(scoreObj) {
 function toggleDetail(factorId) {
   const card = document.getElementById('detail-' + factorId);
   card.classList.toggle('open');
+}
+
+// ================================================================
+//  RADAR CHART
+// ================================================================
+function drawRadarChart(scores) {
+  const canvas = document.getElementById('radar-chart');
+  if (!canvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const size = Math.min(canvas.offsetWidth || 320, 320);
+  canvas.width = size * dpr;
+  canvas.height = size * dpr;
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const cx = size / 2, cy = size / 2;
+  const n = scores.length; // 14
+  const maxScore = 5;
+  const R = size * 0.36;    // outer radius for score=5
+  const labelR = size * 0.47; // label radius
+
+  // Use factor names shortened (4 chars max for radar readability)
+  const shortMap = {
+    '教育機会の不足': '教育', '難聴': '難聴', '高LDLコレステロール': 'LDL',
+    'うつ病': 'うつ', '頭部外傷': '頭部外傷', '運動不足': '運動不足',
+    '糖尿病': '糖尿病', '喫煙': '喫煙', '高血圧': '高血圧', '肥満': '肥満',
+    '過度の飲酒': '飲酒', '社会的孤立': '孤立', '大気汚染': '大気汚染', '視力障害': '視力'
+  };
+  const shortNames = scores.map(s => shortMap[s.factor.name] || s.factor.name.slice(0, 4));
+
+  function angleOf(i) { return (Math.PI * 2 * i) / n - Math.PI / 2; }
+
+  // Draw grid rings
+  for (let ring = 1; ring <= maxScore; ring++) {
+    const r = (R / maxScore) * ring;
+    ctx.beginPath();
+    for (let i = 0; i < n; i++) {
+      const a = angleOf(i);
+      const x = cx + r * Math.cos(a);
+      const y = cy + r * Math.sin(a);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.strokeStyle = ring === maxScore ? 'rgba(100,116,139,0.3)' : 'rgba(100,116,139,0.15)';
+    ctx.lineWidth = ring === maxScore ? 1.5 : 1;
+    ctx.stroke();
+  }
+
+  // Draw axes
+  for (let i = 0; i < n; i++) {
+    const a = angleOf(i);
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(a), cy + R * Math.sin(a));
+    ctx.strokeStyle = 'rgba(100,116,139,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+
+  // Draw data polygon — color each segment by risk level
+  // First fill whole polygon with a base color
+  const pointColors = scores.map(s =>
+    s.level === 'high' ? '#EF4444' : s.level === 'medium' ? '#F59E0B' : '#10B981'
+  );
+
+  // Draw filled polygon (overall, semi-transparent)
+  ctx.beginPath();
+  scores.forEach((s, i) => {
+    const a = angleOf(i);
+    const r = (R / maxScore) * s.score;
+    const x = cx + r * Math.cos(a);
+    const y = cy + r * Math.sin(a);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(33,150,201,0.12)';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(33,150,201,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Draw dots at each vertex, colored by risk
+  scores.forEach((s, i) => {
+    if (s.score === 0) return;
+    const a = angleOf(i);
+    const r = (R / maxScore) * s.score;
+    const x = cx + r * Math.cos(a);
+    const y = cy + r * Math.sin(a);
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = pointColors[i];
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  });
+
+  // Draw labels
+  ctx.font = `bold ${Math.round(size * 0.035)}px -apple-system, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  scores.forEach((s, i) => {
+    const a = angleOf(i);
+    const x = cx + labelR * Math.cos(a);
+    const y = cy + labelR * Math.sin(a);
+    const col = s.level === 'high' ? '#EF4444' : s.level === 'medium' ? '#D97706' : '#059669';
+    ctx.fillStyle = col;
+    ctx.fillText(shortNames[i], x, y);
+  });
 }
 
 // ================================================================
